@@ -2,6 +2,15 @@ INCLUDE_PATH = include
 CXXFLAGS = -I./include -O2 -std=c++11
 
 EXE_CHECKER = \
+	builtin/checker/acmp2 \
+	builtin/checker/acmp3 \
+	builtin/checker/acmp4 \
+	builtin/checker/acmp5 \
+	builtin/checker/acmp6 \
+	builtin/checker/acmp7 \
+	builtin/checker/acmp8 \
+	builtin/checker/acmp9 \
+	builtin/checker/acmp10 \
 	builtin/checker/bcmp \
 	builtin/checker/caseicmp \
 	builtin/checker/casencmp \
