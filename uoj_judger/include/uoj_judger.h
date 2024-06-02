@@ -1560,7 +1560,7 @@ PointInfo test_point(const string &name, const int &sub_num, const int &num, Tes
 					"");
 		}
 
-		double t = conf_double("nonio_time_limit", num, 1.0);
+		double t = conf_double_in_sub("nonio_time_limit", sub_num, num, 1.0);
 		if (rires.res.ust > t * 1000 + 1e-6) {
 			return PointInfo(num, 0, -1, -1,
 					info_str(RS_TLE),
