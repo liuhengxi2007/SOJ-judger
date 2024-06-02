@@ -40,7 +40,7 @@ void ordinary_test() {
 		
 		for (int i = 1; i <= n; i++) {
 			report_judge_status_f("Judging Test #%d", i);
-			PointInfo po = test_point("answer", i);
+			PointInfo po = test_point("answer", 1, i);
 			if (type == "packed") {
 				if (po.scr == 100) {
 					po.scr = i == 1 ? 100 : 0;
@@ -114,7 +114,7 @@ void ordinary_test() {
 
 			for (int i = startI; i <= endI && cscore > 0; i++) {
 				report_judge_status_f("Judging Test #%d of Subtask #%d", i, t);
-				PointInfo po = test_point("answer", i);
+				PointInfo po = test_point("answer", t, i);
 				if (subtaskType == "packed") {
 					if (po.scr == 100) {
 						po.scr = first ? tfull : 0, first = false;

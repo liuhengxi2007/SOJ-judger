@@ -374,6 +374,22 @@ int conf_int(const string &key, int num, const int &val) {
 int conf_int(const string &key)  {
 	return conf_int(key, 0);
 }
+int conf_int_sub(const string &key, int sub_num, const int &val){
+	ostringstream sout;
+	sout << "subtask_" << key << "_" << sub_num;
+	if (config.count(sout.str()) == 0) {
+		return conf_int(key, val);
+	}
+	return atoi(config[sout.str()].c_str());
+}
+int conf_int_in_sub(const string &key, int sub_num, int num, const int &val) {
+	ostringstream sout;
+	sout << key << "_" << num;
+	if (config.count(sout.str()) == 0) {
+		return conf_int_sub(key, sub_num, val);
+	}
+	return atoi(config[sout.str()].c_str());
+}
 double conf_double(const string &key, const double &val) {
 	if (config.count(key) == 0) {
 		return val;
@@ -390,6 +406,22 @@ double conf_double(const string &key, int num, const double &val) {
 }
 double conf_double(const string &key)  {
 	return conf_double(key, 0.0);
+}
+double conf_double_sub(const string &key, int sub_num, const double &val) {
+	ostringstream sout;
+	sout << "subtask_" << key << "_" << sub_num;
+	if (config.count(sout.str()) == 0) {
+		return conf_double(key, val);
+	}
+	return atof(config[sout.str()].c_str());
+}
+double conf_double_in_sub(const string &key, int sub_num, int num, const double &val) {
+	ostringstream sout;
+	sout << key << "_" << num;
+	if (config.count(sout.str()) == 0) {
+		return conf_double_sub(key, sub_num, val);
+	}
+	return atof(config[sout.str()].c_str());
 }
 string conf_input_file_name(int num) {
 	ostringstream name;
@@ -417,8 +449,21 @@ RunLimit conf_run_limit(string pre, const int &num, const RunLimit &val) {
 	limit.output = conf_int(pre + "output_limit", num, val.output);
 	return limit;
 }
+RunLimit conf_run_limit(string pre, const int&sub_num, const int &num, const RunLimit &val) {
+	if (!pre.empty()) {
+		pre += "_";
+	}
+	RunLimit limit;
+	limit.time = conf_double_in_sub(pre + "time_limit", sub_num, num, val.time);
+	limit.memory = conf_int_in_sub(pre + "memory_limit", sub_num, num, val.memory);
+	limit.output = conf_int_in_sub(pre + "output_limit", sub_num, num, val.output);
+	return limit;
+}
 RunLimit conf_run_limit(const int &num, const RunLimit &val) {
 	return conf_run_limit("", num, val);
+}
+RunLimit conf_run_limit(const int&sub_num, const int &num, const RunLimit &val) {
+	return conf_run_limit("", sub_num, num, val);
 }
 void conf_add(const string &key, const string &val) {
 	if (config.count(key))  return;
@@ -1331,7 +1376,7 @@ PointInfo test_point(const string &name, const int &num, TestPointConfig tpc = T
 	if (tpc.validate_input_before_test) {
 		RunValidatorResult val_ret = run_validator(
 				tpc.input_file_name,
-				conf_run_limit("validator", 0, RL_VALIDATOR_DEFAULT),
+				conf_run_limit("validator", num, RL_VALIDATOR_DEFAULT),
 				conf_str("validator"));
 		if (val_ret.type != RS_AC) {
 			return PointInfo(num, 0, -1, -1,
@@ -1414,6 +1459,108 @@ PointInfo test_point(const string &name, const int &num, TestPointConfig tpc = T
 		}
 
 		double t = conf_double("nonio_time_limit", num, 1.0);
+		if (rires.res.ust > t * 1000 + 1e-6) {
+			return PointInfo(num, 0, -1, -1,
+					info_str(RS_TLE),
+					file_preview(real_input_file_name), file_preview(real_output_file_name),
+					"");
+		}
+
+		return PointInfo(num, rires.ires.scr, rires.res.ust, rires.res.usm, 
+				"default",
+				file_preview(real_input_file_name), file_preview(real_output_file_name),
+				rires.ires.info);
+	}
+}
+PointInfo test_point(const string &name, const int &sub_num, const int &num, TestPointConfig tpc = TestPointConfig()) {
+	tpc.auto_complete(num);
+
+	if (tpc.validate_input_before_test) {
+		RunValidatorResult val_ret = run_validator(
+				tpc.input_file_name,
+				conf_run_limit("validator", sub_num, num, RL_VALIDATOR_DEFAULT),
+				conf_str("validator"));
+		if (val_ret.type != RS_AC) {
+			return PointInfo(num, 0, -1, -1,
+					"Validator " + info_str(val_ret.type),
+					file_preview(tpc.input_file_name), "",
+					"");
+		} else if (!val_ret.succeeded) {
+			return PointInfo(num, 0, -1, -1,
+					"Invalid Input",
+					file_preview(tpc.input_file_name), "",
+					val_ret.info);
+		}
+	}
+
+	if (!conf_is("interaction_mode", "on")) {
+		RunResult pro_ret;
+		if (!tpc.submit_answer) {
+			pro_ret = run_submission_program(
+					tpc.input_file_name.c_str(),
+					tpc.output_file_name.c_str(),
+					conf_run_limit(sub_num, num, RL_DEFAULT),
+					name);
+			if (conf_has("token")) {
+				file_hide_token(tpc.output_file_name, conf_str("token", ""));
+			}
+			if (pro_ret.type != RS_AC) {
+				return PointInfo(num, 0, -1, -1,
+						info_str(pro_ret.type),
+						file_preview(tpc.input_file_name), file_preview(tpc.output_file_name),
+						"");
+			}
+		} else {
+			pro_ret.type = RS_AC;
+			pro_ret.ust = -1;
+			pro_ret.usm = -1;
+			pro_ret.exit_code = 0;
+		}
+
+		RunCheckerResult chk_ret = run_checker(
+				conf_run_limit("checker", sub_num, num, RL_CHECKER_DEFAULT),
+				conf_str("checker"),
+				tpc.input_file_name,
+				tpc.output_file_name,
+				tpc.answer_file_name);
+		if (chk_ret.type != RS_AC) {
+			return PointInfo(num, 0, -1, -1,
+					"Checker " + info_str(chk_ret.type),
+					file_preview(tpc.input_file_name), file_preview(tpc.output_file_name),
+					"");
+		}
+
+		return PointInfo(num, chk_ret.scr, pro_ret.ust, pro_ret.usm, 
+				"default",
+				file_preview(tpc.input_file_name), file_preview(tpc.output_file_name),
+				chk_ret.info);
+	} else {
+		string real_output_file_name = tpc.output_file_name + ".real_input.txt";
+		string real_input_file_name = tpc.output_file_name + ".real_output.txt";
+		RunSimpleInteractionResult rires = run_simple_interaction(
+				tpc.input_file_name,
+				tpc.answer_file_name,
+				real_input_file_name,
+				real_output_file_name,
+				conf_run_limit(sub_num, num, RL_DEFAULT),
+				conf_run_limit("interactor", sub_num, num, RL_INTERACTOR_DEFAULT),
+				name);
+
+		if (rires.ires.type != RS_AC) {
+			return PointInfo(num, 0, -1, -1,
+					"Interactor " + info_str(rires.ires.type),
+					file_preview(real_input_file_name), file_preview(real_output_file_name),
+					"");
+		}
+
+		if (rires.res.type != RS_AC) {
+			return PointInfo(num, 0, -1, -1,
+					info_str(rires.res.type),
+					file_preview(real_input_file_name), file_preview(real_output_file_name),
+					"");
+		}
+
+		double t = conf_double_in_sub("nonio_time_limit", sub_num, num, 1.0);
 		if (rires.res.ust > t * 1000 + 1e-6) {
 			return PointInfo(num, 0, -1, -1,
 					info_str(RS_TLE),
