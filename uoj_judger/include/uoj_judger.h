@@ -1290,7 +1290,7 @@ RunCompilerResult compile(const char *name)  {
 	RunCompilerResult res = RunCompilerResult::failed_result();
 	res.info = "This language is not supported yet.";
 	if (lang == "C++")
-		res.info += " (Note: Please use \"C++98\" or \"C++14\" or the other specific standard instead of \"C++\".)";
+		res.info += " (Note: Please use \"C++98\" or \"C++14\" or another specific standard instead of \"C++\".)";
 	return res;
 }
 
@@ -1335,7 +1335,7 @@ RunCompilerResult compile_with_implementer(const char *name)  {
 	RunCompilerResult res = RunCompilerResult::failed_result();
 	res.info = "This language is not supported yet.";
 	if (lang == "C++")
-		res.info += " (Note: Please use \"C++98\" or \"C++14\" or the other specific standard instead of \"C++\".)";
+		res.info += " (Note: Please use \"C++98\" or \"C++14\" or another specific standard instead of \"C++\".)";
 	return res;
 }
 
