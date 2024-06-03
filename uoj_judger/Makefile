@@ -1,5 +1,5 @@
 INCLUDE_PATH = include
-CXXFLAGS = -I./include -O2 -std=c++11
+CXXFLAGS = -I./include -O2 -std=c++14
 
 EXE_CHECKER = \
 	builtin/checker/acmp2 \
