@@ -1,5 +1,0 @@
-#include<cstdio>
-int main()
-{
-fprintf(stderr,"123\n");
-}
