@@ -43,7 +43,7 @@ EXE = main_judger \
 all: $(EXE)
 
 % : %.cpp
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $< -o $@ -Wall -Wextra
 
 run/run_program: include/uoj_env.h run/run_program_conf.h
 run/run_interaction: include/uoj_env.h
