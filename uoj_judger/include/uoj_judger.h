@@ -180,10 +180,12 @@ struct score_t {
 	const char *c_str() const {
 		static char buf[50];
 		char *ptr = buf;
-		ptr += sprintf(ptr, "%" PRId64, value / pow_scale);
+		int64_t abs_value = value;
+		if(value < 0) ptr += sprintf(ptr, "-"), abs_value *= -1;
+		ptr += sprintf(ptr, "%" PRId64, abs_value / pow_scale);
 		if(scale) ptr += sprintf(ptr, ".");
 		for(int i = pow_scale; (i > 1) && (i /= 10); )
-			ptr += sprintf(ptr, "%" PRId64, value / i % 10);
+			ptr += sprintf(ptr, "%" PRId64, abs_value / i % 10);
 		return buf;
 	}
 	static score_t raw(int64_t v) {
