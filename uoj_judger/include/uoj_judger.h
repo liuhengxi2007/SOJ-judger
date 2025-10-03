@@ -996,7 +996,7 @@ void prepare_interactor() {
 	string data_path_std = data_path + "/interactor";
 	string work_path_std = work_path + "/interactor";
 	executef("cp %s %s", data_path_std.c_str(), work_path_std.c_str());
-	conf_add("interactor_language", "C++");
+	conf_add("interactor_language", DEFAULT_LANGUAGE);
 	prepared = true;
 }
 
@@ -1073,7 +1073,7 @@ void prepare_run_standard_program() {
 	string data_path_std = data_path + "/std";
 	string work_path_std = work_path + "/std";
 	executef("cp %s %s", data_path_std.c_str(), work_path_std.c_str());
-	conf_add("std_language", "C++");
+	conf_add("std_language", DEFAULT_LANGUAGE);
 	prepared = true;
 }
 
@@ -1362,6 +1362,8 @@ RunCompilerResult compile(const char *name)  {
 
 	RunCompilerResult res = RunCompilerResult::failed_result();
 	res.info = "This language is not supported yet.";
+	if (lang == "C++")
+		res.info += " (Note: Please use \"C++98\" or \"C++14\" or another specific standard instead of \"C++\".)";
 	return res;
 }
 
@@ -1414,6 +1416,8 @@ RunCompilerResult compile_with_implementer(const char *name)  {
 
 	RunCompilerResult res = RunCompilerResult::failed_result();
 	res.info = "This language is not supported yet.";
+	if (lang == "C++")
+		res.info += " (Note: Please use \"C++98\" or \"C++14\" or another specific standard instead of \"C++\".)";
 	return res;
 }
 
